@@ -5,7 +5,7 @@ use strict;
 use YAX::Parser;
 use YAX::Builder;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 1;
 __END__
 
@@ -146,10 +146,10 @@ This reads: fetch all <a> descendents of C<$node> `..a' then from this
 set select all child elements `.*' and apply a filter for those which
 have a C<foo> attribute equal to bar `.(@foo eq 'bar')'.
 
-The returned $list object is special in that it supports chained calls
+The returned C<$query> object is special in that it supports chained calls
 via the query's OO interface, so the following does exactly the same:
 
- my $list = $node->query('..a.*')->filter(sub { $_->{foo} eq 'bar' });
+ my $query = $node->query('..a.*')->filter(sub { $_->{foo} eq 'bar' });
 
 or the more verbose:
 

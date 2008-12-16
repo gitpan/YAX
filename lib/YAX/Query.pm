@@ -284,7 +284,7 @@ a literal `.' (dot). Each successive token represents an operation on
 the resulting set of the application of the previous token's operation.
 
 In the initial state, the set of nodes contains only the context node
-passed to the constructor: YAX::Query->new( $node ).
+passed to the constructor: C<YAX::Query->new( $node )>.
 
 Filters are enclosed in `(' and `)', and generally contain Perl
 expressions with the exception that tokens of the form /\@(\w+)/ are
@@ -347,9 +347,12 @@ all child nodes of
 
 all comment children of
 
-=item '.(I<\&filter>)'
+=item '.( $expr )'
 
-apply the filter code reference C<\&filter>
+Apply the filter C<$expr> by turning it into a Perl code reference.
+Expressions are Perl with the exception that tokens of the form /\@(\w+)/
+are replaced with $_->{$1} where `$_' is the current node in the loop
+which is applying the filter.
 
 =item '[I<n>]'
 
