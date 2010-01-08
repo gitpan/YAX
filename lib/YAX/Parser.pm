@@ -177,10 +177,8 @@ sub parse_as_fragment {
 
 sub parse_file_as_fragment {
     my ( $self, $file ) = @_;
-    my $xdoc = $self->parse_file( $file );
-    my $root = $xdoc->root;
-    my $frag = YAX::Fragment->new;
-    $frag->append( $root->[0] ) while @$root;
+    my $xstr = $self->read_file( $file );
+    my $frag = $self->parse_as_fragment( $xstr );
     return $frag;
 }
 
@@ -208,8 +206,10 @@ sub _mk_decl {
         $name   = '#cdata';
     };
     substr( $decl, 0, 9 ) eq '<!DOCTYPE' && do {
-        $parent->doctype( $decl );
-        return;
+	$offset = 10;
+	$length = $length - $offset - 3;
+        $type   = DOCUMENT_TYPE_NODE;
+        $name   = "#document-type";
     };
     return $self->_mk_node(
         $name, $type, substr( $decl, $offset, $length ), $parent
@@ -218,16 +218,16 @@ sub _mk_decl {
 
 sub _mk_proc {
     my ( $self, $text, $parent ) = @_;
-    $text = substr( $text, 2, -1 );
+    my ( $name, $data ) = ( $text =~ /^<\?([a-zA-Z0-9_-]+?)\s+(.*?)\s*\?>/ );
     return $self->_mk_node(
-        '#processing-instruction', PROCESSING_INSTRUCTION_NODE, $text, $parent
+        $name, PROCESSING_INSTRUCTION_NODE, $data, $parent
     );
 }
 
 sub _mk_node {
-    my ( $self, $name, $type, $text, $parent ) = @_;
+    my ( $self, $name, $type, $data, $parent ) = @_;
 
-    my $node = YAX::Node->new( $name, $type, $text );
+    my $node = YAX::Node->new( $name, $type, $data );
     push @$parent, $node;
     $node->parent( $parent );
 

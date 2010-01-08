@@ -12,7 +12,7 @@ use overload '@{}' => \&children, '%{}' => \&elements, fallback => 1;
 
 sub HASH () { 0 }
 sub KIDS () { 1 }
-sub TYPE () { 3 }
+#sub TYPE () { 3 }
 
 sub new {
     my $class = shift;
@@ -37,11 +37,11 @@ sub children {
 
 sub parent { undef }
 
-sub doctype {
-    my $self = shift;
-    $$self->[TYPE] = shift if @_;
-    $$self->[TYPE];
-}
+#sub doctype {
+#    my $self = shift;
+#    $$self->[TYPE] = shift if @_;
+#    $$self->[TYPE];
+#}
 
 sub set {
     my ( $self, $id, $elmt ) = @_;
@@ -90,7 +90,7 @@ sub as_string {
     my $self = shift;
     my @kids = @{ $self->children };
     my $kids = join('', map { $_->as_string } @{ $self->children });
-    join( '', $self->doctype, $kids );
+    join( '', $kids );
 }
 
 1;

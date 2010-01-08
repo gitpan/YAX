@@ -1,7 +1,9 @@
 use strict;
 use warnings;
 
-use Test::More tests => 19;
+use lib './lib';
+
+use Test::More tests => 18;
 
 use YAX::Parser;
 use YAX::Constants qw/:all/;
@@ -17,6 +19,7 @@ my $xmlstr = <<XHTML;
     <link rel="stylesheet" href="/kudu/css/default.css" />
 </head>
 <body>
+    <?pi data="foobar" ?>
     <div ku:replace="header" />
     <div ku:include="content" />
     <form ku:action="doit">...</form>
@@ -34,8 +37,6 @@ XHTML
 my $parser = YAX::Parser->new();
 my $document = $parser->parse( $xmlstr );
 ok( $document );
-is( $document->doctype, q{<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">});
 ok( $document->root );
 my $root = $document->root;
 is( $root->name, 'html' );

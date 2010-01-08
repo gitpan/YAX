@@ -72,31 +72,29 @@ sub append {
     if ( UNIVERSAL::isa( $node, 'YAX::Fragment' ) ) {
         $self->append( $_ ) for @$node;
     } else {
-        $self->_claim_child( $node );
-        push @$self, $node;
+        push @$self, $self->adopt( $node );
     }
     $#$self;
 }
 
 sub replace {
     my ( $self, $new, $ref ) = @_;
+
     for ( my $x = 0; $x < @$self; $x++ ) {
         if ( $self->[$x] == $ref ) {
             if ( UNIVERSAL::isa( $new, 'YAX::Fragment' ) ) {
-                $self->_claim_child( $_ ) for @$new;
-                splice( @$self, $x, 1, @$new );
-                return $x;
+                splice( @$self, $x, 1, map { $self->adopt( $_) } @$new );
             } else {
-                $self->_claim_child( $new );
-                splice( @$self, $x, 1, $new );
-                return $x;
+                splice( @$self, $x, 1, $self->adopt( $new ) );
             }
+            return $x;
         }
     }
 }
 
 sub remove {
     my ( $self, $chld ) = @_;
+    return unless $chld->parent == $self;
     for ( my $x = 0; $x < @$self; $x++ ) {
         if ( $self->[$x] == $chld ) {
             splice( @$self, $x, 1 );
@@ -109,30 +107,38 @@ sub remove {
 sub insert {
     my ( $self, $new, $ref ) = @_;
 
-    return $self->append( $new ) unless defined $ref;
+    unless ( defined $ref ) {
+        if ( UNIVERSAL::isa( $new, 'YAX::Fragment' ) ) {
+            unshift( @$self, map { $self->adopt( $_ ) } @$new );
+        } else {
+            unshift( @$self, $self->adopt( $new ) );
+        }
+        return 0;
+    }
 
     for ( my $x = 0; $x < @$self; $x++ ) {
         if ( $self->[$x] == $ref ) {
             if ( UNIVERSAL::isa( $new, 'YAX::Fragment' ) ) {
-                $self->_claim_child( $_ ) for @$new;
-                splice( @$self, $x, 0, @$new );
+                splice( @$self, $x, 0, map { $self->adopt( $_ ) } @$new );
             } else {
-                $self->_claim_child( $new );
-                splice( @$self, $x, 0, $new );
+                splice( @$self, $x, 0, $self->adopt( $new ) );
             }
             return $x;
         }
     }
 }
 
-sub _claim_child {
+sub adopt {
     my ( $self, $node ) = @_;
     unless ( UNIVERSAL::isa( $node, 'YAX::Node' ) ) {
         Carp::croak( "cannot insert `$node' into the document tree" );
     }
     my $prnt = $node->parent;
-    $prnt->remove( $node ) if $prnt and $prnt != $self;
+    if ( defined $prnt and $prnt != $self ) {
+        $prnt->remove( $node );
+    }
     $node->parent( $self );
+    return $node;
 }
 
 sub as_string {
@@ -155,11 +161,7 @@ sub attributes_as_string {
 
 sub children_as_string {
     my $self = shift;
-    my $kids;
-    for my $kid ( @$self ) {
-        $kids .= $kid->as_string;
-    }
-    $kids;
+    join( '', map { $_->as_string } @{ $self->children } );
 }
 
 sub quote {

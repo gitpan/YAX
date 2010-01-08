@@ -7,7 +7,11 @@ use Scalar::Util qw/weaken refaddr/;
 use YAX::Query;
 use YAX::Constants qw/:all/;
 
-use overload '""' => \&as_string, '<=>' => \&num_cmp, fallback => 1;
+use overload
+    '""'   => \&as_string,
+    '<=>'  => \&num_cmp,
+    'bool' => \&as_bool,
+    fallback => 1;
 
 sub NAME () { 0 }
 sub TYPE () { 1 }
@@ -87,9 +91,12 @@ sub as_string {
         return '<![CDATA['.$self->data.']]>';
     }
     if ( $self->type == PROCESSING_INSTRUCTION_NODE ) {
-        return $self->data;
+        return '<?'.$self->name.' '.$self->data.' ?>';
     }
 }
+
+# prevent stringification when in a boolean context
+sub as_bool { 1 }
 
 1;
 __END__
